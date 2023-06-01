@@ -17,8 +17,6 @@ def calculate_density(elm,cent_x, cent_y):
     return density/(elm.size/2)
 
 # File reading and assigning the values
-colors = ['aqua', 'aquamarine', 'azure', 'beige', 'black', 'blue', 'brown', 'chartreuse', 'chocolate', 'coral', 'crimson', 'cyan', 'darkblue', 'darkgreen', 'fuchsia', 'gold', 'goldenrod', 'green', 'grey', 'indigo', 'ivory', 'khaki', 'lavender', 'lightblue', 'lightgreen', 'lime', 'magenta', 'maroon', 'navy', 'olive', 'orange', 'orangered', 'orchid', 'pink', 'plum', 'purple', 'red','salmon', 'sienna', 'silver', 'tan', 'teal', 'tomato', 'turquoise', 'violet', 'wheat', 'yellow' , 'yellowgreen'  ]
-random.shuffle(colors)
 start = time.time()
 with open(input("Enter a file name: "), 'r') as file:
     line = file.readline()
@@ -39,23 +37,24 @@ y = kmeans.fit_predict(X)
 cent = kmeans.cluster_centers_
 
 # std - z score
-st_dev = []
-pearson_corr = []
-norms = []
-elements = np.array(X.flatten())
-for i in range(cluster_size):
-    r = np.round(np.random.rand(), 1)
-    g = np.round(np.random.rand(), 1)
-    b = np.round(np.random.rand(), 1)
-    st_dev.append(calculate_density(elements, cent[i][0], cent[i][1]))
-    plt.scatter(X[y == i, 0], X[y == i, 1], s=1, color=[r,g,b])
-    print(st_dev[i])
-    print(cent[i])
-    # pearson_corr.append(pearsonr(X[y==i, 0],X[y==i, 1]))
-    # norms.append(stats.norm.pdf(X))
-    # scipy.stats.multivariate_normal()
+if cluster_size > 1:
+    densities = []
 
-plt.scatter(cent[:, 0], cent[:, 1], s=20, c = 'yellow')
+    for i in range(cluster_size):
+        r = np.round(np.random.rand(), 1)
+        g = np.round(np.random.rand(), 1)
+        b = np.round(np.random.rand(), 1)
+        elements = np.array(X[y == i].flatten())
+        densities.append(calculate_density(elements, cent[i][0], cent[i][1]))
+        plt.scatter(X[y == i, 0], X[y == i, 1], s=1, color=[r,g,b])
+        print(densities[i])
+        print(cent[i])
+        # pearson_corr.append(pearsonr(X[y==i, 0],X[y==i, 1]))
+        # norms.append(stats.norm.pdf(X))
+        # scipy.stats.multivariate_normal()
+else:
+    plt.scatter(cent[:, 0], cent[:, 1], s=20, c='yellow')
+    plt.scatter(X[y == 0, 0], X[y == 0, 1], s=1, c='crimson')
 
 # optics = OPTICS(min_samples=1000, xi=0.05, min_cluster_size=0.05).fit(X)
 # labels = optics.labels_
