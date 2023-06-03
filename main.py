@@ -5,6 +5,7 @@ import time
 import math
 import gc
 import random
+import networkx as nx
 
 
 def calculate_density(elm, cent_x, cent_y):
@@ -265,6 +266,147 @@ def three_opt(cities):
                 cities = np.concatenate((cities[: node_a1 + 1], cities[node_b2: node_c1 + 1],
                                          cities[node_a2: node_b1 + 1], cities[node_c2:]))
     return cities
+
+
+def calculate_distance(x1, y1, x2, y2):
+    return (x2 - x1) ** 2 + (y2 - y1) ** 2
+
+
+def create_weighted_graph(x_coords, y_coords):
+    num_cities = len(x_coords)
+    graph = np.zeros((num_cities, num_cities))
+
+    for i in range(num_cities):
+        for j in range(num_cities):
+            if i != j:
+                graph[i, j] = calculate_distance(x_coords[i], y_coords[i], x_coords[j], y_coords[j])
+            else:
+                graph[i, j] = float('inf')
+
+    return graph
+
+
+def prims_algorithm(graph):
+    num_vertices = graph.shape[0]
+    # Create an array to keep track of visited vertices
+    visited = np.zeros(num_vertices, dtype=bool)
+    # Create an array to store the parent of each vertex in the MST
+    parent = np.zeros(num_vertices, dtype=int)
+    # Create an array to store the minimum weight for each vertex
+    weight = np.full(num_vertices, float('inf'))
+
+    # Start with the first vertex
+    weight[0] = 0
+    parent[0] = -1
+
+    for k in range(num_vertices):
+        # Find the vertex with the minimum weight that has not been visited
+        min_weight = float('inf')
+        min_vertex = -1
+        for v in range(num_vertices):
+            if not visited[v] and weight[v] < min_weight:
+                min_weight = weight[v]
+                min_vertex = v
+
+        visited[min_vertex] = True
+
+        # Update the weight and parent for neighboring vertices
+        for v in range(num_vertices):
+            if (
+                    not visited[v] and
+                    graph[min_vertex][v] != 0 and
+                    graph[min_vertex][v] < weight[v]
+            ):
+                weight[v] = graph[min_vertex][v]
+                parent[v] = min_vertex
+
+    return parent
+
+
+def plot_mst(x_coords, y_coords, parent, odd, matching):
+    plt.figure()
+    for i in range(1, len(parent)):
+        plt.plot([x_coords[i], x_coords[parent[i]]], [y_coords[i], y_coords[parent[i]]], 'r-')
+
+    for i in range(len(matching)):
+        plt.plot([x_coords[matching[i][0]], x_coords[matching[i][1]]],
+                 [y_coords[matching[i][0]], y_coords[matching[i][1]]], 'r-', color='purple')
+
+    plt.scatter(x_coords, y_coords, color='b')
+
+    oddCoordsX = []
+    oddCoordsY = []
+    for i in range(len(odd)):
+        oddCoordsX.append(x_coords[odd[i]])
+        oddCoordsY.append(y_coords[odd[i]])
+
+    plt.scatter(oddCoordsX, oddCoordsY, color='yellow')
+    plt.show()
+
+
+def plot_Multi(x_coords, y_coords, parent):
+    plt.figure()
+    for i in range(1, len(parent)):
+        for j in range(1, len(parent[i])):
+            plt.plot([x_coords[i], x_coords[parent[i][j]]], [y_coords[i], y_coords[parent[i][j]]], 'r-')
+
+    plt.scatter(x_coords, y_coords, color='b')
+
+    plt.show()
+
+
+def plot_Euler(x_coords, y_coords, parent):
+    plt.figure()
+    for i in range(len(parent)):
+        plt.plot([x_coords[parent[i - 1]], x_coords[parent[i]]], [y_coords[parent[i - 1]], y_coords[parent[i]]], 'r-',
+                 color=random.choice(['red', 'green', 'blue', 'yellow', 'black', 'purple', 'pink', 'orange']))
+
+    plt.scatter(x_coords, y_coords, color='b')
+
+    plt.show()
+
+
+nx.graph
+
+
+def find_perfect_matching(odd_vertices, matrix):
+    edges = []
+    indexes = []
+    for i in range(len(odd_vertices)):
+        if i in indexes:
+            continue
+        min = float('inf')
+        min_index = -1
+        for j in range(len(odd_vertices)):
+            if i != j and j not in indexes and matrix[odd_vertices[i]][odd_vertices[j]] < min:
+                min = matrix[odd_vertices[i]][odd_vertices[j]]
+                min_index = j
+        indexes.append(min_index)
+        indexes.append(i)
+        edges.append((odd_vertices[i], odd_vertices[min_index]))
+    return edges
+
+
+def find_odd_degree_nodes(parent_data):
+    # Initialize a dictionary to store the in-degree and out-degree of each vertex
+    in_degree = {}
+    out_degree = {}
+
+    # Count the in-degree and out-degree of each vertex
+    for child, parent in enumerate(parent_data):
+        if parent != -1:
+            in_degree[child] = in_degree.get(child, 0) + 1
+            out_degree[parent] = out_degree.get(parent, 0) + 1
+
+    # Handle the first element separately
+    first_element = parent_data[0]
+    if first_element == -1:
+        in_degree[0] = 0
+
+    # Find the odd degree nodes
+    odd_degree_nodes = [node for node in in_degree.keys() if (in_degree[node] + out_degree.get(node, 0)) % 2 != 0]
+
+    return odd_degree_nodes
 
 
 # File reading and assigning the values
