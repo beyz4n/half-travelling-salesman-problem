@@ -53,7 +53,7 @@ def prims_algorithm(graph):
     # Start with the first vertex
     weight[0] = 0
     parent[0] = -1
-
+    
     for k in range(num_vertices):
         # Find the vertex with the minimum weight that has not been visited
         min_weight = float('inf')
@@ -77,6 +77,7 @@ def prims_algorithm(graph):
 
     return parent
 
+
 def plot_mst(x_coords, y_coords, parent,odd,matching):
     plt.figure()
     for i in range(1, len(parent)):
@@ -93,7 +94,7 @@ def plot_mst(x_coords, y_coords, parent,odd,matching):
         oddCoordsX.append(x_coords[odd[i]])
         oddCoordsY.append(y_coords[odd[i]])
         
-    plt.scatter(oddCoordsX, oddCoordsY, color='g')
+    plt.scatter(oddCoordsX, oddCoordsY, color='yellow')
     plt.show()
 
 def plot_Multi(x_coords, y_coords, parent):
@@ -115,19 +116,45 @@ def plot_Euler(x_coords, y_coords, parent):
 
     plt.show()
 
+nx.graph
+
+def find_perfect_matching(odd_vertices, matrix):
+    edges= []
+    indexes = []
+    for i in range(len(odd_vertices)):
+        if i in indexes:
+            continue
+        min = float('inf')
+        min_index = -1
+        for j in range(len(odd_vertices)):
+            if i != j and j not in indexes and matrix[odd_vertices[i]][odd_vertices[j]] < min:
+                min = matrix[odd_vertices[i]][odd_vertices[j]]
+                min_index = j
+        indexes.append(min_index)
+        indexes.append(i)
+        edges.append((odd_vertices[i], odd_vertices[min_index]))
+    return edges
 
 def find_odd_degree_nodes(parent_data):
-    # Initialize a dictionary to store the degree of each vertex
-    degree = {}
+    # Initialize a dictionary to store the in-degree and out-degree of each vertex
+    in_degree = {}
+    out_degree = {}
 
-    # Count the number of edges connected to each vertex
+    # Count the in-degree and out-degree of each vertex
     for child, parent in enumerate(parent_data):
         if parent != -1:
-            degree[parent] = degree.get(parent, 0) + 1
-            degree[child] = degree.get(child, 0) + 1
+            in_degree[child] = in_degree.get(child, 0) + 1
+            out_degree[parent] = out_degree.get(parent, 0) + 1
+
+    # Handle the first element separately
+    first_element = parent_data[0]
+    if first_element == -1:
+        in_degree[0] = 0
+
+    
 
     # Find the odd degree nodes
-    odd_degree_nodes = [node for node, deg in degree.items() if deg % 2 != 0]
+    odd_degree_nodes = [node for node in in_degree.keys() if (in_degree[node] + out_degree.get(node, 0)) % 2 != 0]
 
     return odd_degree_nodes
 
@@ -140,8 +167,18 @@ graph = create_weighted_graph(x_points, y_points)
 
 parent = prims_algorithm(graph)
 
+
+
+print(parent)
+plot_mst(x_points, y_points, parent,[],[])
+
 print("mst created")
+
+
+
 odd_degree_nodes = find_odd_degree_nodes(parent)
+
+print(odd_degree_nodes)
 
 oddCoordsX = []
 oddCoordsY = []
@@ -149,17 +186,17 @@ for i in range(len(odd_degree_nodes)):
         oddCoordsX.append(x_points[odd_degree_nodes[i]])
         oddCoordsY.append(y_points[odd_degree_nodes[i]])
 
+plot_mst(x_points, y_points, parent,odd_degree_nodes,[])
+
 print("odd degree nodes found")
-nxgraphOdd = nx.Graph(create_weighted_graph(oddCoordsX, oddCoordsY)*-1)
+#nxgraphOdd = nx.Graph(create_weighted_graph(oddCoordsX, oddCoordsY)*-1)
 
 print("min odd graph created")
-matchingX = list(nx.max_weight_matching(nxgraphOdd, maxcardinality=True))
+#matchingX = list(nx.max_weight_matching(nxgraphOdd, maxcardinality=True))
 
-print("odd list count", nxgraphOdd.number_of_nodes())
-matching = []
+matching = find_perfect_matching(odd_degree_nodes, graph)
+#print("odd list count", nxgraphOdd.number_of_nodes())
 
-for i in range(len(matchingX)):
-    matching.append((odd_degree_nodes[matchingX[i][0]], odd_degree_nodes[matchingX[i][1]]))
 
 print(matching)
 print(parent)
