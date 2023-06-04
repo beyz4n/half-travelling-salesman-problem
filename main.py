@@ -231,11 +231,11 @@ def terminate_clusters(best_cluster, X, y):
     return flat_xy
 
 
-def print_length(cities):
+def get_length(cities):
     dist = 0
     for m in range(len(cities)):
         dist += distance_btw_two_cities(m, m - 1, cities)
-    print(dist)
+    return dist
 
 
 # method to swap pairs of nodes according to their index size
@@ -277,9 +277,9 @@ def three_opt(cities):
     length = len(cities)
     # number of iteration for loop
     if length < 3000:
-        size = 3000
+        size = 3000*1000
     else:
-        size = len(cities)
+        size = len(cities)*1000
 
     for i in range(0, size):
         # chose 3 node pairs
@@ -438,51 +438,6 @@ def prims_algorithm(graph):
     return parent
 
 
-def plot_mst(x_coords, y_coords, parent, odd, matching):
-    plt.figure()
-    for i in range(1, len(parent)):
-        plt.plot([x_coords[i], x_coords[parent[i]]], [y_coords[i], y_coords[parent[i]]], 'r-')
-
-    for i in range(len(matching)):
-        plt.plot([x_coords[matching[i][0]], x_coords[matching[i][1]]],
-                 [y_coords[matching[i][0]], y_coords[matching[i][1]]], 'r-', color='purple')
-
-    plt.scatter(x_coords, y_coords, color='b')
-
-    oddCoordsX = []
-    oddCoordsY = []
-    for i in range(len(odd)):
-        oddCoordsX.append(x_coords[odd[i]])
-        oddCoordsY.append(y_coords[odd[i]])
-
-    plt.scatter(oddCoordsX, oddCoordsY, color='yellow')
-    plt.show()
-
-
-def plot_Multi(x_coords, y_coords, parent):
-    plt.figure()
-    for i in range(1, len(parent)):
-        for j in range(1, len(parent[i])):
-            plt.plot([x_coords[i], x_coords[parent[i][j]]], [y_coords[i], y_coords[parent[i][j]]], 'r-')
-
-    plt.scatter(x_coords, y_coords, color='b')
-
-    plt.show()
-
-
-def plot_Euler(x_coords, y_coords, parent):
-    plt.figure()
-    for i in range(len(parent)):
-        plt.plot([x_coords[parent[i - 1]], x_coords[parent[i]]], [y_coords[parent[i - 1]], y_coords[parent[i]]], 'r-',
-                 color=random.choice(['red', 'green', 'blue', 'yellow', 'black', 'purple', 'pink', 'orange']))
-
-    plt.scatter(x_coords, y_coords, color='b')
-
-    plt.show()
-
-
-nx.graph
-
 
 def find_perfect_matching(odd_vertices, matrix):
     edges = []
@@ -523,6 +478,48 @@ def find_odd_degree_nodes(parent_data):
 
     return odd_degree_nodes
 
+
+def plot_Euler(x_coords, y_coords, parent):
+    plt.figure()
+
+
+    plt.scatter(x_coords, y_coords, color='b')
+
+    plt.show()
+
+def christofides():
+    graph = create_weighted_graph(x_points, y_points)
+    mst = prims_algorithm(graph)
+    odd_degree_nodes = find_odd_degree_nodes(mst)
+
+    oddCoordsX = []
+    oddCoordsY = []
+    for i in range(len(odd_degree_nodes)):
+        oddCoordsX.append(x_points[odd_degree_nodes[i]])
+        oddCoordsY.append(y_points[odd_degree_nodes[i]])
+
+    matching = find_perfect_matching(odd_degree_nodes, graph)
+    multiGraph = []
+    for i in range(len(mst)):
+        multiGraph.append([i, mst[i]])
+
+    for i in range(len(matching)):
+        multiGraph[matching[i][0]].append(matching[i][1])
+
+    nxMultiGraph = nx.MultiGraph()
+
+    for edge in multiGraph[1:]:
+        x = edge[0]
+        for i in edge[1:]:
+            nxMultiGraph.add_edge(x, i)
+
+    eulerianPath = list(nx.eulerian_circuit(nxMultiGraph))
+
+    tour = [0]
+    for (i, j) in eulerianPath:
+        if j not in tour:
+            tour.append(j)
+    return tour
 
 # File reading and assigning the values
 start = time.time()
@@ -633,6 +630,23 @@ for i in range(node_number):
             break
 
 # TODO: insert your methods for tsp here
+tour_christofides = christofides()
+tour_optimized = three_opt(tour_christofides)
+print(tour_optimized)
+tour_optimized_ids = []
+for i in range(len(tour_optimized)):
+    tour_optimized_ids.append(id_points[tour_optimized[i]])
+print(tour_optimized_ids)
+for i in range(len(tour_optimized_ids)):
+    plt.plot([X[tour_optimized_ids[i - 1], 0], X[tour_optimized_ids[i],0]], [X[tour_optimized_ids[i - 1],1],
+        X[tour_optimized_ids[i],1]], 'r-',color=random.choice(['red', 'green', 'blue', 'yellow', 'black', 'purple', 'pink', 'orange']))
+distance = get_length(tour_optimized)
+distance = round(distance)
+
+with open('output.txt', 'w') as output:
+    output.write(str(distance) + '\n')
+    for i in range(len(tour_optimized_ids)):
+        output.write(str(tour_optimized_ids[i]) + '\n')
 
 end = time.time()
 elapsed_time = end - start
