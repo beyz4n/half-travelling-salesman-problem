@@ -122,53 +122,53 @@ def get_num_of_city(elm):
     return num
 
 
-# def get_weight(list):
-#     weight = 0
-#     temp_density = list[0,3]
-#     temp_density_2 = 0
-#     i = 1
-#     list_size = int(list.size/5)
-#     while(i < list_size ):
-#         temp_density_2 = list[i,3]
-#         weight += math.sqrt( (list[i,0]-list[i-1,0])**2 +  (list[i,1]-list[i-1,1])**2 ) * temp_density_2 * temp_density
-#         temp_density = temp_density_2
-#         i += 1
-
-
-#     return weight
-
-def get_weight(elm):
+def get_weight(list):
     weight = 0
-    temp_elm = np.copy(elm)
-    i = 0
-    elm_size = int(temp_elm.size / 5)
-    best_distance = math.sqrt((temp_elm[0, 0] - temp_elm[1, 0]) ** 2 + (temp_elm[0, 1] - temp_elm[1, 1]) ** 2)
-    temp_distance = 0
-    index = 0
-    next_index = 0
-    if elm_size == 1:
-        weight += temp_elm[0, 3]
+    temp_density = list[0,3]
+    temp_density_2 = 0
+    i = 1
+    list_size = int(list.size/5)
+    while(i < list_size ):
+        temp_density_2 = list[i,3]
+        weight += math.sqrt( (list[i,0]-list[i-1,0])**2 +  (list[i,1]-list[i-1,1])**2 ) * temp_density_2 * temp_density
+        temp_density = temp_density_2
+        i += 1
 
-    while elm_size != 1:
-
-        while i < elm_size:
-            if i != index:
-                temp_distance = math.sqrt(
-                    (temp_elm[index, 0] - temp_elm[i, 0]) ** 2 + (temp_elm[index, 1] - temp_elm[i, 1]) ** 2)
-                if temp_distance < best_distance:
-                    best_distance = temp_distance
-                    next_index = i
-            i += 1
-        i = 0
-        weight += best_distance * temp_elm[index, 3] * temp_elm[next_index, 3]
-        temp_elm = np.delete(temp_elm, index, 0)
-        index = next_index - 1
-        next_index = 0
-        best_distance = math.sqrt(
-            (temp_elm[0, 0] - temp_elm[index, 0]) ** 2 + (temp_elm[0, 1] - temp_elm[index, 1]) ** 2)
-        elm_size = int(temp_elm.size / 5)
 
     return weight
+
+# def get_weight(elm):
+#     weight = 0
+#     temp_elm = np.copy(elm)
+#     i = 0
+#     elm_size = int(temp_elm.size / 5)
+#     best_distance = math.sqrt((temp_elm[0, 0] - temp_elm[1, 0]) ** 2 + (temp_elm[0, 1] - temp_elm[1, 1]) ** 2)
+#     temp_distance = 0
+#     index = 0
+#     next_index = 0
+#     if elm_size == 1:
+#         weight += temp_elm[0, 3]
+#
+#     while elm_size != 1:
+#
+#         while i < elm_size:
+#             if i != index:
+#                 temp_distance = math.sqrt(
+#                     (temp_elm[index, 0] - temp_elm[i, 0]) ** 2 + (temp_elm[index, 1] - temp_elm[i, 1]) ** 2)
+#                 if temp_distance < best_distance:
+#                     best_distance = temp_distance
+#                     next_index = i
+#             i += 1
+#         i = 0
+#         weight += best_distance * temp_elm[index, 3] * temp_elm[next_index, 3]
+#         temp_elm = np.delete(temp_elm, index, 0)
+#         index = next_index - 1
+#         next_index = 0
+#         best_distance = math.sqrt(
+#             (temp_elm[0, 0] - temp_elm[index, 0]) ** 2 + (temp_elm[0, 1] - temp_elm[index, 1]) ** 2)
+#         elm_size = int(temp_elm.size / 5)
+#
+#     return weight
 
 
 def terminate_clusters(best_cluster, X, y):
@@ -277,9 +277,10 @@ def three_opt(cities):
     length = len(cities)
     # number of iteration for loop
     if length < 3000:
-        size = 3000*1000
+        # could change
+        size = int(math.pow(3000, 2))
     else:
-        size = len(cities)*1000
+        size = int(math.pow(len(cities), 2))
 
     for i in range(0, size):
         # chose 3 node pairs
