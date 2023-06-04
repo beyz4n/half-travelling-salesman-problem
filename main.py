@@ -468,6 +468,28 @@ else:
     # from one cluster choose n/2 nodes
     plt.scatter(cent[:, 0], cent[:, 1], s=20, c='yellow')
     plt.scatter(X[y == 0, 0], X[y == 0, 1], s=1, c='crimson')
+    node_number = len(x_points)
+    lookup = []
+    cent_x = cent[0][0]
+    cent_y = cent[0][1]
+    for pts in range(node_number):
+        distance_btw_cent_and_node = (x_points[pts] - cent_x)**2 + (y_points[pts] - cent_y)**2
+        lookup.append((pts,distance_btw_cent_and_node))
+    lookup.sort(key=lambda a: a[1])
+    needed_node = math.ceil(node_number/2)
+    temp_best_x = []
+    temp_best_y = []
+    for ptr in range(needed_node):
+        temp_best_x.append(x_points[lookup[ptr][0]])
+        temp_best_y.append(y_points[lookup[ptr][0]])
+    x_points = temp_best_x
+    y_points = temp_best_y
+    gc.collect()
+    plt.scatter(x_points, y_points, s=5, c='blue')
+
+
+
+
 
 # optics = OPTICS(min_samples=1000, xi=0.05, min_cluster_size=0.05).fit(X)
 # labels = optics.labels_
