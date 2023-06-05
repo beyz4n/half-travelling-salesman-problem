@@ -1,10 +1,9 @@
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
-from sklearn.cluster import OPTICS
 import numpy as np
 import time
 import networkx as nx
 import random
+import math
 
 
 # File reading and assigning the values
@@ -22,8 +21,6 @@ with open(input("Enter a file name: "), 'r') as file:
         x_points.append(digits[1])
         y_points.append(digits[2])
         line = file.readline()
-
-
 
 def calculate_distance(x1, y1, x2, y2):
     return (x2 - x1)**2 + (y2 - y1)**2
@@ -119,6 +116,8 @@ def plot_Euler(x_coords, y_coords, parent):
 nx.graph
 
 def find_perfect_matching(odd_vertices, matrix):
+
+    odd_vertices.sort(key=lambda v: sum(matrix[v]))
     edges= []
     indexes = []
     for i in range(len(odd_vertices)):
@@ -158,9 +157,22 @@ def find_odd_degree_nodes(parent_data):
 
     return odd_degree_nodes
 
+def create_minimum_weight_pairs(graph):
+    minimum_weight_pairs = set()
+    
+    # Sort edges by weight in ascending order
+    sorted_edges = sorted(graph.edges(data=True), key=lambda x: x[2]['weight'])
 
+    # Create a set to keep track of used nodes
+    used_nodes = set()
 
+    for u, v, attr in sorted_edges:
+        if u not in used_nodes and v not in used_nodes:
+            minimum_weight_pairs.add((u, v))
+            used_nodes.add(u)
+            used_nodes.add(v)
 
+    return minimum_weight_pairs
 
 
 graph = create_weighted_graph(x_points, y_points)
@@ -194,12 +206,19 @@ print("odd degree nodes found")
 print("min odd graph created")
 #matchingX = list(nx.max_weight_matching(nxgraphOdd, maxcardinality=True))
 
+print(odd_degree_nodes)
 matching = find_perfect_matching(odd_degree_nodes, graph)
+
 #print("odd list count", nxgraphOdd.number_of_nodes())
 
+print("matching size", len(odd_degree_nodes))
 
+matching = list(create_minimum_weight_pairs(nx.Graph(create_weighted_graph(oddCoordsX, oddCoordsY))))
+
+print("matching found")
+
+matching = [(odd_degree_nodes[i],odd_degree_nodes[j]) for i,j in matching]
 print(matching)
-print(parent)
 
 multiGraph = []
 for i in range(len(parent)):
@@ -207,7 +226,10 @@ for i in range(len(parent)):
 
 for i in range(len(matching)):
     multiGraph[matching[i][0]].append(matching[i][1])
-print
+
+plot_mst(x_points, y_points, [],odd_degree_nodes,matching)
+
+print("matching added to multigraph")
 print(multiGraph)
 
 nxMultiGraph = nx.MultiGraph()
@@ -219,19 +241,26 @@ for edge in multiGraph[1:]:
 
 eulerianPath = list(nx.eulerian_circuit(nxMultiGraph))
 
-print(nxMultiGraph.edges)
-print("Eulerian Path")
-print(eulerianPath)
 #TODO create a multigraph from the minimum spanning tree and matching edges
 #plot_mst(x_points, y_points, parent,odd_degree_nodes,matching)
-
+#eulerianPath =generate_eulerian_circuit(multiGraph)
+print("Eulerian Path")
+print(eulerianPath)
 tour=[0]
 for(i,j) in eulerianPath:
     if j not in tour:
         tour.append(j)
 print("Tour")
 print(tour)
+print("Tour sorted:")
+print(sorted(tour))
+dist = 0
+for i in range(len(tour)):
+    dist+= math.sqrt (calculate_distance(x_points[tour[i-1]], y_points[tour[i-1]], x_points[tour[i]], y_points[tour[i]]))
 
+print("distance:", dist)
 print("exec time:", time.time()-start)
 #plot_Multi(x_points, y_points, multiGraph)
 plot_Euler(x_points, y_points, tour)
+
+
