@@ -122,53 +122,53 @@ def get_num_of_city(elm):
     return num
 
 
-# def get_weight(list):
-#     weight = 0
-#     temp_density = list[0,3]
-#     temp_density_2 = 0
-#     i = 1
-#     list_size = int(list.size/5)
-#     while(i < list_size ):
-#         temp_density_2 = list[i,3]
-#         weight += math.sqrt( (list[i,0]-list[i-1,0])**2 +  (list[i,1]-list[i-1,1])**2 ) * temp_density_2 * temp_density
-#         temp_density = temp_density_2
-#         i += 1
-
-
-#     return weight
-
-def get_weight(elm):
+def get_weight(list):
     weight = 0
-    temp_elm = np.copy(elm)
-    i = 0
-    elm_size = int(temp_elm.size / 5)
-    best_distance = math.sqrt((temp_elm[0, 0] - temp_elm[1, 0]) ** 2 + (temp_elm[0, 1] - temp_elm[1, 1]) ** 2)
-    temp_distance = 0
-    index = 0
-    next_index = 0
-    if elm_size == 1:
-        weight += temp_elm[0, 3]
+    temp_density = list[0,3]
+    temp_density_2 = 0
+    i = 1
+    list_size = int(list.size/5)
+    while(i < list_size ):
+        temp_density_2 = list[i,3]
+        weight += math.sqrt( (list[i,0]-list[i-1,0])**2 +  (list[i,1]-list[i-1,1])**2 ) * temp_density_2 * temp_density
+        temp_density = temp_density_2
+        i += 1
 
-    while elm_size != 1:
-
-        while i < elm_size:
-            if i != index:
-                temp_distance = math.sqrt(
-                    (temp_elm[index, 0] - temp_elm[i, 0]) ** 2 + (temp_elm[index, 1] - temp_elm[i, 1]) ** 2)
-                if temp_distance < best_distance:
-                    best_distance = temp_distance
-                    next_index = i
-            i += 1
-        i = 0
-        weight += best_distance * temp_elm[index, 3] * temp_elm[next_index, 3]
-        temp_elm = np.delete(temp_elm, index, 0)
-        index = next_index - 1
-        next_index = 0
-        best_distance = math.sqrt(
-            (temp_elm[0, 0] - temp_elm[index, 0]) ** 2 + (temp_elm[0, 1] - temp_elm[index, 1]) ** 2)
-        elm_size = int(temp_elm.size / 5)
 
     return weight
+
+# def get_weight(elm):
+#     weight = 0
+#     temp_elm = np.copy(elm)
+#     i = 0
+#     elm_size = int(temp_elm.size / 5)
+#     best_distance = math.sqrt((temp_elm[0, 0] - temp_elm[1, 0]) ** 2 + (temp_elm[0, 1] - temp_elm[1, 1]) ** 2)
+#     temp_distance = 0
+#     index = 0
+#     next_index = 0
+#     if elm_size == 1:
+#         weight += temp_elm[0, 3]
+#
+#     while elm_size != 1:
+#
+#         while i < elm_size:
+#             if i != index:
+#                 temp_distance = math.sqrt(
+#                     (temp_elm[index, 0] - temp_elm[i, 0]) ** 2 + (temp_elm[index, 1] - temp_elm[i, 1]) ** 2)
+#                 if temp_distance < best_distance:
+#                     best_distance = temp_distance
+#                     next_index = i
+#             i += 1
+#         i = 0
+#         weight += best_distance * temp_elm[index, 3] * temp_elm[next_index, 3]
+#         temp_elm = np.delete(temp_elm, index, 0)
+#         index = next_index - 1
+#         next_index = 0
+#         best_distance = math.sqrt(
+#             (temp_elm[0, 0] - temp_elm[index, 0]) ** 2 + (temp_elm[0, 1] - temp_elm[index, 1]) ** 2)
+#         elm_size = int(temp_elm.size / 5)
+#
+#     return weight
 
 
 def terminate_clusters(best_cluster, X, y):
@@ -230,7 +230,7 @@ def terminate_clusters(best_cluster, X, y):
 
     return flat_xy
 
-
+# method to find length of the tsp tour
 def get_length(cities):
     dist = 0
     for m in range(len(cities)):
@@ -238,8 +238,8 @@ def get_length(cities):
     return dist
 
 
-# method to swap pairs of nodes according to their index size
-def rearrange_nodes(node1, node2, node3, node4, node5, node6):
+# method to swap pairs of nodes according to their index size for 3 opt
+def rearrange_nodes_for_6_nodes(node1, node2, node3, node4, node5, node6):
     nodes = [node1, node2, node3, node4, node5, node6]
     nodes.sort()
     if nodes[0] == 0:
@@ -247,6 +247,14 @@ def rearrange_nodes(node1, node2, node3, node4, node5, node6):
     else:
         return nodes[0], nodes[1], nodes[2], nodes[3], nodes[4], nodes[5]
 
+# method to swap pairs of nodes according to their index size for 2 opt
+def rearrange_nodes_for_4_nodes(node1, node2, node3, node4):
+    nodes = [node1, node2, node3, node4]
+    nodes.sort()
+    if nodes[0] == 0:
+        return nodes[1], nodes[2], nodes[3], nodes[0]
+    else:
+        return nodes[0], nodes[1], nodes[2], nodes[3]
 
 # method to shift the nodes backward
 def shift_nodes(length, node1, node2):
@@ -257,7 +265,6 @@ def shift_nodes(length, node1, node2):
         node2 = node2 - 1
     return node1, node2
 
-
 # method to calculate Euclidean distance between 2 nodes
 def distance_btw_two_cities(city1, city2, cities):
     difference = math.sqrt(
@@ -265,21 +272,25 @@ def distance_btw_two_cities(city1, city2, cities):
                 y_points[cities[city1]] - y_points[cities[city2]]) ** 2)
     return difference
 
-
-# method to calculate Euclidean distance
-def distance(city1, city2, city3, city4, city5, city6, cities):
+# method to calculate Euclidean distance for 3 opt
+def distance_3opt(city1, city2, city3, city4, city5, city6, cities):
     distance = distance_btw_two_cities(city1, city2, cities) + distance_btw_two_cities(city3, city4, cities) + \
                distance_btw_two_cities(city5, city6, cities)
     return distance
 
+# method to calculate Euclidean distance for 2 opt
+def distance_2opt(city1, city2, city3, city4, cities):
+    distance = distance_btw_two_cities(city1, city2, cities) + distance_btw_two_cities(city3, city4, cities)
+    return distance
 
 def three_opt(cities):
     length = len(cities)
     # number of iteration for loop
     if length < 3000:
-        size = 3000*1000
+        # could change
+        size = int(math.pow(3000, 2))
     else:
-        size = len(cities)*1000
+        size = int(math.pow(len(cities), 2))
 
     for i in range(0, size):
         # chose 3 node pairs
@@ -314,25 +325,25 @@ def three_opt(cities):
             node_c1, node_c2 = shift_nodes(length, node_c1, node_c2)
 
         # swap pairs of nodes according to their index size
-        node_a1, node_a2, node_b1, node_b2, node_c1, node_c2 = rearrange_nodes(node_a1, node_a2, node_b1, node_b2,
+        node_a1, node_a2, node_b1, node_b2, node_c1, node_c2 = rearrange_nodes_for_6_nodes(node_a1, node_a2, node_b1, node_b2,
                                                                                node_c1, node_c2)
 
         # current length for 3 path
-        current = distance(node_a1, node_a2, node_b1, node_b2, node_c1, node_c2, cities)
+        current = distance_3opt(node_a1, node_a2, node_b1, node_b2, node_c1, node_c2, cities)
         # for option 1
-        length_1 = distance(node_a1, node_c1, node_c2, node_a2, node_b1, node_b2, cities)
+        length_1 = distance_3opt(node_a1, node_c1, node_c2, node_a2, node_b1, node_b2, cities)
         # for option 2
-        length_2 = distance(node_a1, node_a2, node_c2, node_b2, node_c1, node_b1, cities)
+        length_2 = distance_3opt(node_a1, node_a2, node_c2, node_b2, node_c1, node_b1, cities)
         # for option 3
-        length_3 = distance(node_c1, node_c2, node_a1, node_b1, node_a2, node_b2, cities)
+        length_3 = distance_3opt(node_c1, node_c2, node_a1, node_b1, node_a2, node_b2, cities)
         # for option 4
-        length_4 = distance(node_a2, node_c1, node_a1, node_b1, node_c2, node_b2, cities)
+        length_4 = distance_3opt(node_a2, node_c1, node_a1, node_b1, node_c2, node_b2, cities)
         # for option 5
-        length_5 = distance(node_a2, node_b2, node_a1, node_c1, node_b1, node_c2, cities)
+        length_5 = distance_3opt(node_a2, node_b2, node_a1, node_c1, node_b1, node_c2, cities)
         # for option 6
-        length_6 = distance(node_a2, node_c2, node_c1, node_b1, node_a1, node_b2, cities)
+        length_6 = distance_3opt(node_a2, node_c2, node_c1, node_b1, node_a1, node_b2, cities)
         # for option 7
-        length_7 = distance(node_a2, node_c1, node_b1, node_c2, node_a1, node_b2, cities)
+        length_7 = distance_3opt(node_a2, node_c1, node_b1, node_c2, node_a1, node_b2, cities)
 
         # find min length
         min_length = min(length_1, length_2, length_3, length_4, length_5, length_6, length_7, current)
@@ -382,6 +393,43 @@ def three_opt(cities):
                                          cities[node_a2: node_b1 + 1], cities[node_c2:]))
     return cities
 
+
+def two_opt(cities):
+    length = len(cities)
+    for i in range(1, length):
+        for j in range(1, length):
+            # chose 2 node pairs
+            # chose first pair
+            node_a1 = i
+            node_a2 = node_a1 + 1
+            if node_a2 == length:
+                node_a2 = 0  # if it is len which mean is circle completed, actually it is 0th one
+
+            # chose second pair
+            node_b1 = j
+            node_b2 = node_b1 + 1
+            if node_b2 == length:  # if it is len which mean is circle completed, actually it is 0th one
+                node_b2 = 0
+
+            # if there is a collision
+            if node_b1 == node_a1 or node_b1 == node_a2 or node_b2 == node_a1 or node_b2 == node_a2:
+                continue
+
+            # swap pairs of nodes according to their index size
+            node_a1, node_a2, node_b1, node_b2 = rearrange_nodes_for_4_nodes(node_a1, node_a2, node_b1, node_b2)
+
+            # current length for 2 path
+            current = distance_2opt(node_a1, node_a2, node_b1, node_b2, cities)
+            # new path length for 2 path
+            new = distance_2opt(node_a1, node_b1, node_a2, node_b2, cities)
+
+            if new < current: # if the newly found path is shorter, update list of cities to visit
+                if node_b2 == 0:
+                    cities = np.concatenate((cities[: node_a1 + 1], np.flip(cities[node_a2: node_b1 + 1])))
+                else:
+                    cities = np.concatenate((cities[: node_a1 + 1], np.flip(cities[node_a2: node_b1 + 1]),
+                                             cities[node_b2:]))
+    return cities
 
 def calculate_distance(x1, y1, x2, y2):
     return (x2 - x1) ** 2 + (y2 - y1) ** 2
@@ -632,6 +680,7 @@ for i in range(node_number):
 # TODO: insert your methods for tsp here
 tour_christofides = christofides()
 tour_optimized = three_opt(tour_christofides)
+tour_optimized = two_opt(tour_optimized)
 print(tour_optimized)
 tour_optimized_ids = []
 for i in range(len(tour_optimized)):
