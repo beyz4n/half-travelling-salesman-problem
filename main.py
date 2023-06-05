@@ -234,7 +234,7 @@ def terminate_clusters(best_cluster, X, y):
 def get_length(cities):
     dist = 0
     for m in range(len(cities)):
-        dist += distance_btw_two_cities(m, m - 1, cities)
+        dist += int(round(distance_btw_two_cities(m, m - 1, cities)))
     return dist
 
 
@@ -286,11 +286,13 @@ def distance_2opt(city1, city2, city3, city4, cities):
 def three_opt(cities):
     length = len(cities)
     # number of iteration for loop
-    if length < 3000:
+    if length < 1000:
         # could change
-        size = int(math.pow(3000, 2))
+        size = length*length*length
+    elif length<3000:
+        size = length*length
     else:
-        size = int(math.pow(len(cities), 2))
+        size = length*2000
 
     for i in range(0, size):
         # chose 3 node pairs
@@ -690,7 +692,6 @@ for i in range(len(tour_optimized_ids)):
     plt.plot([X[tour_optimized_ids[i - 1], 0], X[tour_optimized_ids[i],0]], [X[tour_optimized_ids[i - 1],1],
         X[tour_optimized_ids[i],1]], 'r-',color=random.choice(['red', 'green', 'blue', 'yellow', 'black', 'purple', 'pink', 'orange']))
 distance = get_length(tour_optimized)
-distance = round(distance)
 
 with open('output.txt', 'w') as output:
     output.write(str(distance) + '\n')
