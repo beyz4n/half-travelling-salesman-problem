@@ -6,7 +6,6 @@ import math
 import gc
 import random
 import networkx as nx
-from itertools import combinations
 
 
 def calculate_density(elm, cent_x, cent_y):
@@ -14,6 +13,28 @@ def calculate_density(elm, cent_x, cent_y):
     for j in range(0, elm.size, 2):
         density += math.sqrt((cent_x - elm[j]) ** 2 + (cent_y - elm[j + 1]) ** 2)
     return density / (elm.size / 2)
+
+
+def combinations(iterable, r):
+    pool = tuple(iterable)
+    n = len(pool)
+    if r > n:
+        return
+    indices = list(range(r))
+    begin = list(pool[i] for i in indices)
+    # rate()
+
+    while True:
+        for i in reversed(range(r)):
+            if indices[i] != i + n - r:
+                break
+        else:
+            return
+        indices[i] += 1
+        for j in range(i + 1, r):
+            indices[j] = indices[j - 1] + 1
+        end = list(pool[i] for i in indices)
+        # rate()
 
 
 def sort_list(elm):
