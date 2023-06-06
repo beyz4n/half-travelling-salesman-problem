@@ -15,28 +15,6 @@ def calculate_density(elm, cent_x, cent_y):
     return density / (elm.size / 2)
 
 
-def combinations(iterable, r):
-    pool = tuple(iterable)
-    n = len(pool)
-    if r > n:
-        return
-    indices = list(range(r))
-    begin = list(pool[i] for i in indices)
-    # rate()
-
-    while True:
-        for i in reversed(range(r)):
-            if indices[i] != i + n - r:
-                break
-        else:
-            return
-        indices[i] += 1
-        for j in range(i + 1, r):
-            indices[j] = indices[j - 1] + 1
-        end = list(pool[i] for i in indices)
-        # rate()
-
-
 def sort_list(elm):
     list = elm
     temp = 0
@@ -114,20 +92,60 @@ def find_best(elm, new_best_list, temp_list):
     cluster_size = math.ceil(elm.size / 5)
     arr = range(cluster_size)
     best_cluster_size = math.ceil(new_best_list.size / 5)
-    combs = list(combinations(arr, best_cluster_size))
-    i = 0
-    combs_size = len(combs)
+    
+    
+    #def combinations(iterable, r):
+    pool = tuple(range(cluster_size))
+    n = len(pool)
+    r = best_cluster_size
+    if r > n:
+        return
+    indices = list(range(r))
+    begin = list(pool[i] for i in indices)
+    # rate()
     best_weight = get_weight(new_best_list)
-    while i < combs_size:
+    if math.ceil(size / 2) < get_num_of_city(temp_list):
+            if get_weight(temp_list) < best_weight:
+                new_best_list = temp_list
+                best_weight = get_weight(temp_list)
+    temp_list = []
+    temp_list = np.array(elm[begin, :])
 
+    while True:
+        for i in reversed(range(r)):
+            if indices[i] != i + n - r:
+                break
+        else:
+            gc.collect()
+            return new_best_list
+        indices[i] += 1
+        for j in range(i + 1, r):
+            indices[j] = indices[j - 1] + 1
+        end = list(pool[i] for i in indices)
+        # rate()
         if math.ceil(size / 2) < get_num_of_city(temp_list):
             if get_weight(temp_list) < best_weight:
                 new_best_list = temp_list
                 best_weight = get_weight(temp_list)
-
         temp_list = []
-        temp_list = np.array(elm[combs[i], :])
-        i += 1
+        temp_list = np.array(elm[end, :])
+    
+    
+    
+    #combs = list(combinations(arr, best_cluster_size))
+    # i = 0
+    # combs_size = len(combs)
+    # best_weight = get_weight(new_best_list)
+    # while i < combs_size:
+
+    #     if math.ceil(size / 2) < get_num_of_city(temp_list):
+    #         if get_weight(temp_list) < best_weight:
+    #             new_best_list = temp_list
+    #             best_weight = get_weight(temp_list)
+
+    #     temp_list = []
+    #     temp_list = np.array(elm[combs[i], :])
+    #     i += 1
 
     gc.collect()
     return new_best_list
