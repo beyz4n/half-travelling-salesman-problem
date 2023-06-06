@@ -631,6 +631,8 @@ X = np.array(listPoints, dtype='int')
 del listPoints
 gc.collect()
 cluster_size = math.ceil(size / 750)
+if cluster_size > 27:
+    cluster_size = 27
 kmeans = KMeans(n_clusters=cluster_size, init='k-means++', random_state=0, n_init='auto')
 y = kmeans.fit_predict(X)
 cent = kmeans.cluster_centers_
