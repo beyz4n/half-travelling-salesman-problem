@@ -382,8 +382,7 @@ def terminate_clusters(best_cluster, X, y):
 
 
 def get_actual_dist(city1, city2, cities):
-    difference = math.sqrt(int( (int(x_points[cities[city1]]) - int(x_points[cities[city2]])) ** 2 + (
-                int(y_points[cities[city1]]) - int(y_points[cities[city2]])) ** 2))
+    difference = math.sqrt(graph[cities[city1]][cities[city2]])
     return difference
 
 
