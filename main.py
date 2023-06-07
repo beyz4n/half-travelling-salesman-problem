@@ -269,11 +269,19 @@ def terminate_clusters(best_cluster, X, y):
 
     return flat_xy
 
+
+def get_actual_dist(city1, city2, cities):
+    difference = math.sqrt(
+        (x_points[cities[city1]] - x_points[cities[city2]]) ** 2 + (
+                y_points[cities[city1]] - y_points[cities[city2]]) ** 2)
+    return difference
+
+
 # method to find length of the tsp tour
 def get_length(cities):
     dist = 0
     for m in range(len(cities)):
-        dist += int(round(distance_btw_two_cities(m, m - 1, cities)))
+        dist += int(round(get_actual_dist(m, m - 1, cities)))
     return dist
 
 
@@ -306,9 +314,9 @@ def shift_nodes(length, node1, node2):
 
 # method to calculate Euclidean distance between 2 nodes
 def distance_btw_two_cities(city1, city2, cities):
-    difference = math.sqrt(
-        (x_points[cities[city1]] - x_points[cities[city2]]) ** 2 + (
-                y_points[cities[city1]] - y_points[cities[city2]]) ** 2)
+    difference = graph[city1][city2]
+    # difference = (int(x_points[cities[city1]]) - int(x_points[cities[city2]])) ** 2 \
+    #              + (int(y_points[cities[city1]]) - int(y_points[cities[city2]])) ** 2
     return difference
 
 # method to calculate Euclidean distance for 3 opt
@@ -473,7 +481,7 @@ def two_opt(cities):
     return cities
 
 def calculate_distance(x1, y1, x2, y2):
-    return (x2 - x1) ** 2 + (y2 - y1) ** 2
+    return (int(x2) - int(x1)) ** 2 + (int(y2) - int(y1)) ** 2
 
 
 def create_weighted_graph(x_coords, y_coords):
@@ -577,7 +585,7 @@ def plot_Euler(x_coords, y_coords, parent):
     plt.show()
 
 def christofides():
-    graph = create_weighted_graph(x_points, y_points)
+
     mst = prims_algorithm(graph)
     odd_degree_nodes = find_odd_degree_nodes(mst)
 
@@ -721,6 +729,7 @@ for i in range(node_number):
             break
 
 # TODO: insert your methods for tsp here
+graph = create_weighted_graph(x_points, y_points)
 tour_christofides = christofides()
 tour_optimized = three_opt(tour_christofides)
 tour_optimized = two_opt(tour_optimized)
