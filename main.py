@@ -422,11 +422,12 @@ def shift_nodes(length, node1, node2):
     else:
         node2 = node2 - 1
     return node1, node2
-
+graph = []
 # method to calculate Euclidean distance between 2 nodes
 def distance_btw_two_cities(city1, city2, cities):
-    difference = (int(x_points[cities[city1]]) - int(x_points[cities[city2]])) ** 2 \
-                  + (int(y_points[cities[city1]]) - int(y_points[cities[city2]])) ** 2
+    difference = graph[cities[city1]][cities[city2]]
+    # difference = (int(x_points[cities[city1]]) - int(x_points[cities[city2]])) ** 2 \
+    #               + (int(y_points[cities[city1]]) - int(y_points[cities[city2]])) ** 2
     return difference
 
 # method to calculate Euclidean distance for 3 opt
@@ -442,14 +443,7 @@ def distance_2opt(city1, city2, city3, city4, cities):
 
 def three_opt(cities):
     length = len(cities)
-    # number of iteration for loop
-    if length < 1000:
-        # could change
-        size = length*length*length
-    elif length<3000:
-        size = length*length
-    else:
-        size = length*2000
+    size = length*2000
 
     for i in range(0, size):
         # chose 3 node pairs
@@ -695,6 +689,7 @@ def plot_Euler(x_coords, y_coords, parent):
     plt.show()
 
 def christofides():
+    global graph
     graph = create_weighted_graph(x_points, y_points)
     mst = prims_algorithm(graph)
     odd_degree_nodes = find_odd_degree_nodes(mst)
@@ -844,6 +839,8 @@ tour_optimized = three_opt(tour_christofides)
 print("three opt done")
 tour_optimized = two_opt(tour_optimized)
 print("two opt done")
+tour_optimized = two_opt(tour_optimized)
+print("two opt done 2")
 print(tour_optimized)
 tour_optimized_ids = []
 for i in range(len(tour_optimized)):
