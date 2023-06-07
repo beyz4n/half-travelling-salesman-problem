@@ -380,9 +380,7 @@ def terminate_clusters(best_cluster, X, y):
 
 
 def get_actual_dist(city1, city2, cities):
-    difference = math.sqrt(
-        (x_points[cities[city1]] - x_points[cities[city2]]) ** 2 + (
-                y_points[cities[city1]] - y_points[cities[city2]]) ** 2)
+    difference = math.sqrt(graph[cities[city1]][cities[city2]])
     return difference
 
 
@@ -830,6 +828,12 @@ for i in range(node_number):
         if X[j, 0] == current_x and X[j, 1] == current_y:
             id_points.append(j)
             break
+
+with open('cluster.txt', 'w') as output:
+    for i in range(len(id_points)):
+        output.write(str(id_points[i])+' '+str(x_points[i])+' '+str(y_points[i]) + '\n')
+
+
 
 # TODO: insert your methods for tsp here
 print("clustering done")
