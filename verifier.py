@@ -4,7 +4,7 @@ from numpy import *
 # usage: python tsp-verifier.py inputfilename solutionfilename
 
 def main():
-    cities = readinstance("example-input-2.txt")
+    cities = readinstance("i4.txt")
     solution = readsolution("output.txt")
     checksolution(cities, solution[0][0],solution[1])
 

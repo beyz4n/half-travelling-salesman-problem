@@ -6,7 +6,6 @@ import math
 import gc
 import random
 import networkx as nx
-from itertools import combinations
 
 
 def calculate_density(elm, cent_x, cent_y):
@@ -93,20 +92,60 @@ def find_best(elm, new_best_list, temp_list):
     cluster_size = math.ceil(elm.size / 5)
     arr = range(cluster_size)
     best_cluster_size = math.ceil(new_best_list.size / 5)
-    combs = list(combinations(arr, best_cluster_size))
-    i = 0
-    combs_size = len(combs)
+    
+    
+    #def combinations(iterable, r):
+    pool = tuple(range(cluster_size))
+    n = len(pool)
+    r = best_cluster_size
+    if r > n:
+        return
+    indices = list(range(r))
+    begin = list(pool[i] for i in indices)
+    # rate()
     best_weight = get_weight(new_best_list)
-    while i < combs_size:
+    if math.ceil(size / 2) < get_num_of_city(temp_list):
+            if get_weight(temp_list) < best_weight:
+                new_best_list = temp_list
+                best_weight = get_weight(temp_list)
+    temp_list = []
+    temp_list = np.array(elm[begin, :])
 
+    while True:
+        for i in reversed(range(r)):
+            if indices[i] != i + n - r:
+                break
+        else:
+            gc.collect()
+            return new_best_list
+        indices[i] += 1
+        for j in range(i + 1, r):
+            indices[j] = indices[j - 1] + 1
+        end = list(pool[i] for i in indices)
+        # rate()
         if math.ceil(size / 2) < get_num_of_city(temp_list):
             if get_weight(temp_list) < best_weight:
                 new_best_list = temp_list
                 best_weight = get_weight(temp_list)
-
         temp_list = []
-        temp_list = np.array(elm[combs[i], :])
-        i += 1
+        temp_list = np.array(elm[end, :])
+    
+    
+    
+    #combs = list(combinations(arr, best_cluster_size))
+    # i = 0
+    # combs_size = len(combs)
+    # best_weight = get_weight(new_best_list)
+    # while i < combs_size:
+
+    #     if math.ceil(size / 2) < get_num_of_city(temp_list):
+    #         if get_weight(temp_list) < best_weight:
+    #             new_best_list = temp_list
+    #             best_weight = get_weight(temp_list)
+
+    #     temp_list = []
+    #     temp_list = np.array(elm[combs[i], :])
+    #     i += 1
 
     gc.collect()
     return new_best_list
@@ -171,8 +210,68 @@ def get_weight(list):
 #     return weight
 
 
+# def terminate_clusters(best_cluster, X, y):
+#     best_cluster_size = int(best_cluster.size / 5)
+#     i = 0
+#     center_X = 0
+#     center_Y = 0
+#     city_size = get_num_of_city(best_cluster)
+#     while i < best_cluster_size:
+#         center_X += best_cluster[i, 0] * best_cluster[i, 4]
+#         center_Y += best_cluster[i, 1] * best_cluster[i, 4]
+#         i += 1
+#     center_X = center_X / city_size
+#     center_Y = center_Y / city_size
+
+#     temp_X = 0
+#     temp_Y = 0
+#     i = 0
+#     x_axis = np.copy(X[y == best_cluster[0, 2], 0].flatten())
+#     y_axis = np.copy(X[y == best_cluster[0, 2], 1].flatten())
+#     for i in range(1, best_cluster_size):
+#         x_axis = np.append(x_axis, X[y == best_cluster[i, 2], 0].flatten())
+#         y_axis = np.append(y_axis, X[y == best_cluster[i, 2], 1].flatten())
+
+#     x_axis = x_axis.flatten()
+#     y_axis = y_axis.flatten()
+
+#     x_point_length = len(x_axis)
+
+#     for i in range(int(x_point_length)):
+#         j = i
+#         temp_X = x_axis[0]
+#         temp_Y = y_axis[0]
+#         index = i
+#         while (j + 1 < x_point_length):
+#             if ((y_axis[j + 1] - center_Y) ** 2 + (x_axis[j + 1] - center_X) ** 2 < (temp_X - center_X) ** 2 +  temp_Y - center_Y) ** 2):
+#                 temp_X = x_axis[j + 1]
+#                 temp_Y = y_axis[j + 1]
+#                 index = j + 1
+#             j += 1
+
+#         temp = x_axis[i]
+#         x_axis[i] = x_axis[index]
+#         x_axis[index] = temp
+#         temp = y_axis[i]
+#         y_axis[i] = y_axis[index]
+#         y_axis[index] = temp
+
+#     min_city_size = math.ceil(size / 2)
+#     temp_X_2 = []
+#     temp_Y_2 = []
+#     i = 0
+#     for i in range(min_city_size):
+#         temp_X_2.append(x_axis[i])
+#         temp_Y_2.append(y_axis[i])
+
+#     flat_xy = temp_X_2 + temp_Y_2
+
+#     return flat_xy
+
 def terminate_clusters(best_cluster, X, y):
-    best_cluster_size = int(best_cluster.size / 5)
+
+    best_cluster_size = int(best_cluster.size/5)
+
     i = 0
     center_X = 0
     center_Y = 0
@@ -184,57 +283,114 @@ def terminate_clusters(best_cluster, X, y):
     center_X = center_X / city_size
     center_Y = center_Y / city_size
 
-    temp_X = 0
-    temp_Y = 0
+    temp = 0
+    j = 0
+    index = 0
+    # buyukten kucuge siralama city std ye gore
+    for i in range(best_cluster_size):
+        j = i
+        temp = best_cluster[i, 3]
+        index = i
+        while j + 1 < best_cluster_size:
+            if best_cluster[j + 1, 3] > temp:
+                temp = best_cluster[j + 1, 3]
+                index = j + 1
+            j += 1
+
+        temp = best_cluster[i, 1]
+        best_cluster[i, 1] = best_cluster[index, 1]
+        best_cluster[index, 1] = temp
+        temp = best_cluster[i, 0]
+        best_cluster[i, 0] = best_cluster[index, 0]
+        best_cluster[index, 0] = temp
+        temp = best_cluster[i, 2]
+        best_cluster[i, 2] = best_cluster[index, 2]
+        best_cluster[index, 2] = temp
+        temp = best_cluster[i, 3]
+        best_cluster[i, 3] = best_cluster[index, 3]
+        best_cluster[index, 3] = temp
+        temp = best_cluster[i, 4]
+        best_cluster[i, 4] = best_cluster[index, 4] # 4 de city size var
+        best_cluster[index, 4] = temp
+
+
+    min_city_size = math.ceil(size / 2)
+    while(min_city_size < city_size):
+
+        if(min_city_size < city_size - best_cluster[0,4] ):
+            best_cluster = np.delete(best_cluster, 0, 0 )
+            city_size = get_num_of_city(best_cluster)
+            best_cluster_size = int(best_cluster.size/5)
+        else:
+            x_axis = np.copy(X[y == best_cluster[0, 2], 0].flatten())
+            y_axis = np.copy(X[y == best_cluster[0, 2], 1].flatten())
+
+            x_axis = x_axis.flatten()
+            y_axis = y_axis.flatten()
+
+            x_point_length = len(x_axis)
+
+            i = 0
+            for i in range(int(x_point_length)):
+                j = i
+                temp_X = x_axis[0]
+                temp_Y = y_axis[0]
+                index = i
+                while (j + 1 < x_point_length):
+                    if ((y_axis[j + 1] - center_Y) ** 2 + (x_axis[j + 1] - center_X) ** 2 < (temp_X - center_X) ** 2 +  (temp_Y - center_Y) ** 2):
+                        temp_X = x_axis[j + 1]
+                        temp_Y = y_axis[j + 1]
+                        index = j + 1
+                    j += 1
+
+                temp = x_axis[i]
+                x_axis[i] = x_axis[index]
+                x_axis[index] = temp
+                temp = y_axis[i]
+                y_axis[i] = y_axis[index]
+                y_axis[index] = temp
+
+            needed_city = min_city_size - (city_size - best_cluster[0,4] )
+            i = 0
+            temp_X = []
+            temp_Y = []
+
+            while(i<needed_city):
+                temp_X.append(x_axis[i])
+                temp_Y.append(y_axis[i])
+                i += 1
+            break
+
+
     i = 0
-    x_axis = np.copy(X[y == best_cluster[0, 2], 0].flatten())
-    y_axis = np.copy(X[y == best_cluster[0, 2], 1].flatten())
+    x_axis = temp_X
+    y_axis = temp_Y
     for i in range(1, best_cluster_size):
         x_axis = np.append(x_axis, X[y == best_cluster[i, 2], 0].flatten())
         y_axis = np.append(y_axis, X[y == best_cluster[i, 2], 1].flatten())
 
-    x_axis = x_axis.flatten()
-    y_axis = y_axis.flatten()
 
-    x_point_length = len(x_axis)
+    flat_XY = np.array(x_axis)
+    flat_XY = np.append(flat_XY, y_axis)
+    return flat_XY
 
-    for i in range(int(x_point_length)):
-        j = i
-        temp_X = x_axis[0]
-        temp_Y = y_axis[0]
-        index = i
-        while (j + 1 < x_point_length):
-            if ((y_axis[j + 1] - center_Y) ** 2 + (x_axis[j + 1] - center_X) ** 2 < (temp_X - center_X) ** 2 + (
-                    temp_Y - center_Y) ** 2):
-                temp_X = x_axis[j + 1]
-                temp_Y = y_axis[j + 1]
-                index = j + 1
-            j += 1
 
-        temp = x_axis[i]
-        x_axis[i] = x_axis[index]
-        x_axis[index] = temp
-        temp = y_axis[i]
-        y_axis[i] = y_axis[index]
-        y_axis[index] = temp
 
-    min_city_size = math.ceil(size / 2)
-    temp_X_2 = []
-    temp_Y_2 = []
-    i = 0
-    for i in range(min_city_size):
-        temp_X_2.append(x_axis[i])
-        temp_Y_2.append(y_axis[i])
 
-    flat_xy = temp_X_2 + temp_Y_2
 
-    return flat_xy
+
+def get_actual_dist(city1, city2, cities):
+    difference = math.sqrt(graph[cities[city1]][cities[city2]])
+    return difference
+
+
+
 
 # method to find length of the tsp tour
 def get_length(cities):
     dist = 0
     for m in range(len(cities)):
-        dist += int(round(distance_btw_two_cities(m, m - 1, cities)))
+        dist += int(round(get_actual_dist(m, m - 1, cities)))
     return dist
 
 
@@ -264,12 +420,12 @@ def shift_nodes(length, node1, node2):
     else:
         node2 = node2 - 1
     return node1, node2
-
+graph = []
 # method to calculate Euclidean distance between 2 nodes
 def distance_btw_two_cities(city1, city2, cities):
-    difference = math.sqrt(
-        (x_points[cities[city1]] - x_points[cities[city2]]) ** 2 + (
-                y_points[cities[city1]] - y_points[cities[city2]]) ** 2)
+    difference = graph[cities[city1]][cities[city2]]
+    # difference = (int(x_points[cities[city1]]) - int(x_points[cities[city2]])) ** 2 \
+    #               + (int(y_points[cities[city1]]) - int(y_points[cities[city2]])) ** 2
     return difference
 
 # method to calculate Euclidean distance for 3 opt
@@ -285,14 +441,7 @@ def distance_2opt(city1, city2, city3, city4, cities):
 
 def three_opt(cities):
     length = len(cities)
-    # number of iteration for loop
-    if length < 1000:
-        # could change
-        size = length*length*length
-    elif length<3000:
-        size = length*length
-    else:
-        size = length*2000
+    size = length*2000
 
     for i in range(0, size):
         # chose 3 node pairs
@@ -434,7 +583,7 @@ def two_opt(cities):
     return cities
 
 def calculate_distance(x1, y1, x2, y2):
-    return (x2 - x1) ** 2 + (y2 - y1) ** 2
+    return (int(x2) - int(x1)) ** 2 + (int(y2) - int(y1)) ** 2
 
 
 def create_weighted_graph(x_coords, y_coords):
@@ -538,6 +687,7 @@ def plot_Euler(x_coords, y_coords, parent):
     plt.show()
 
 def christofides():
+    global graph
     graph = create_weighted_graph(x_points, y_points)
     mst = prims_algorithm(graph)
     odd_degree_nodes = find_odd_degree_nodes(mst)
@@ -592,6 +742,8 @@ X = np.array(listPoints, dtype='int')
 del listPoints
 gc.collect()
 cluster_size = math.ceil(size / 750)
+if cluster_size > 27:
+    cluster_size = 27
 kmeans = KMeans(n_clusters=cluster_size, init='k-means++', random_state=0, n_init='auto')
 y = kmeans.fit_predict(X)
 cent = kmeans.cluster_centers_
@@ -621,10 +773,9 @@ if cluster_size > 1:
     sort_list(clusters_2)
     best_list = []
     acceptable_size = False
-    j = 0
     cluster_size_2 = math.ceil(clusters_2.size / 10)
     while not acceptable_size:
-        for i in range(cluster_size_2 + j):
+        for i in range(cluster_size_2):
             best_list = np.append(best_list, np.copy(clusters_2[i]), axis=0)
             temp_list = np.append(temp_list, np.copy(clusters_2[i]), axis=0)
 
@@ -635,7 +786,6 @@ if cluster_size > 1:
             acceptable_size = True
         else:
             cluster_size_2 += 1
-            j += 1
             best_list = []
             temp_list = []
             gc.collect()
@@ -679,10 +829,22 @@ for i in range(node_number):
             id_points.append(j)
             break
 
+with open('cluster.txt', 'w') as output:
+    for i in range(len(id_points)):
+        output.write(str(id_points[i])+' '+str(x_points[i])+' '+str(y_points[i]) + '\n')
+
+
+
 # TODO: insert your methods for tsp here
+print("clustering done")
 tour_christofides = christofides()
+print("christofides done")
 tour_optimized = three_opt(tour_christofides)
+print("three opt done")
 tour_optimized = two_opt(tour_optimized)
+print("two opt done")
+tour_optimized = two_opt(tour_optimized)
+print("two opt done 2")
 print(tour_optimized)
 tour_optimized_ids = []
 for i in range(len(tour_optimized)):
