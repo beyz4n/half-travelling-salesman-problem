@@ -8,7 +8,9 @@ import random
 import networkx as nx
 
 
+# This function is for calculating the density of clusters using centroid
 def calculate_density(elm, cent_x, cent_y):
+    # We put the distance from centroid to the points to the density and return it
     density = 0
     for j in range(0, elm.size, 2):
         density += math.sqrt((cent_x - elm[j]) ** 2 + (cent_y - elm[j + 1]) ** 2)
@@ -380,9 +382,8 @@ def terminate_clusters(best_cluster, X, y):
 
 
 def get_actual_dist(city1, city2, cities):
-    difference = math.sqrt(
-        (x_points[cities[city1]] - x_points[cities[city2]]) ** 2 + (
-                y_points[cities[city1]] - y_points[cities[city2]]) ** 2)
+    difference = math.sqrt(int( (int(x_points[cities[city1]]) - int(x_points[cities[city2]])) ** 2 + (
+                int(y_points[cities[city1]]) - int(y_points[cities[city2]])) ** 2))
     return difference
 
 
@@ -725,8 +726,10 @@ def christofides():
 
 # File reading and assigning the values
 start = time.time()
+# We get the file name and read it here
 with open(input("Enter a file name: "), 'r') as file:
     line = file.readline()
+    # assigning the lists the values by using append
     listPoints = []
     x_points = []
     y_points = []
@@ -739,43 +742,55 @@ with open(input("Enter a file name: "), 'r') as file:
         y_points.append(digits[2])
         line = file.readline()
 
+# get the size of the whole cities
 size = int(digits[0]) + 1
+# create an X array that contains the x and y points
 X = np.array(listPoints, dtype='int')
+#delete list points because it is not needed anymore
 del listPoints
 gc.collect()
+# applying kmeans dynamically so we get the cluster size as element size / 750
 cluster_size = math.ceil(size / 750)
+# if cluster size is so big then we cannot handle the combinations and it will take unfeasible time, so we limit it
 if cluster_size > 27:
     cluster_size = 27
+# apply k means get the results and centroids, applied the kmeans++ version
 kmeans = KMeans(n_clusters=cluster_size, init='k-means++', random_state=0, n_init='auto')
 y = kmeans.fit_predict(X)
 cent = kmeans.cluster_centers_
 
-# std - z score
+# if cluster size is bigger than 1 then we must select some of them
 if cluster_size > 1:
+    # density and number of cities lists created
     densities = []
     num_of_cities = []
     for pt in range(cluster_size):
         r = np.round(np.random.rand(), 1)
         g = np.round(np.random.rand(), 1)
         b = np.round(np.random.rand(), 1)
+        # get the elements of a cluster
         elements = np.array(X[y == pt].flatten())
+        # find the density and append for that cluster
         densities.append(calculate_density(elements, cent[pt][0], cent[pt][1]))
+        # also add it to the number of cities list
         num_of_cities.append(X[y == pt, 0].size)
         plt.scatter(X[y == pt, 0], X[y == pt, 1], s=1, color=[r, g, b])
         plt.scatter(cent[:, 0], cent[:, 1], s=20, c='yellow')
-        # pearson_corr.append(pearsonr(X[y==i, 0],X[y==i, 1]))
-        # norms.append(stats.norm.pdf(X))
-        # scipy.stats.multivariate_normal()
+    # create them as a numpy array and make it a nx5 numpy matrix
+    # centroid x-y-id-density-number of cities
     density_arr = np.array(densities)
     ids = np.arange(cluster_size)
     num_of_cities_array = np.array(num_of_cities)
     features = np.column_stack((ids, density_arr))
     clusters = np.hstack((cent, features))
     clusters_2 = np.column_stack((clusters, num_of_cities_array))
+    # sort the list
     sort_list(clusters_2)
+    # get the best list defined and create a boolean for sizing
     best_list = []
     acceptable_size = False
     cluster_size_2 = math.ceil(clusters_2.size / 10)
+    # comment eklensin
     while not acceptable_size:
         for i in range(cluster_size_2):
             best_list = np.append(best_list, np.copy(clusters_2[i]), axis=0)
@@ -801,25 +816,33 @@ else:
     # from one cluster choose n/2 nodes
     plt.scatter(cent[:, 0], cent[:, 1], s=20, c='yellow')
     plt.scatter(X[y == 0, 0], X[y == 0, 1], s=1, c='crimson')
+    # get the whole size
     node_number = len(x_points)
+    # create a lookup table and given values
     lookup = []
     cent_x = cent[0][0]
     cent_y = cent[0][1]
+    # for each node in range get the distance and put it to the lookup table
     for pts in range(node_number):
         distance_btw_cent_and_node = (x_points[pts] - cent_x) ** 2 + (y_points[pts] - cent_y) ** 2
         lookup.append((pts, distance_btw_cent_and_node))
+    # sort the lookup according to the distance
     lookup.sort(key=lambda a: a[1])
     needed_node = math.ceil(node_number / 2)
     temp_best_x = []
     temp_best_y = []
+    # get the best using the lookup table and append it to the lists
     for ptr in range(needed_node):
         temp_best_x.append(x_points[lookup[ptr][0]])
         temp_best_y.append(y_points[lookup[ptr][0]])
+    # assign them accordingly
     x_points = temp_best_x
     y_points = temp_best_y
     gc.collect()
     plt.scatter(x_points, y_points, s=5, c='blue')
 
+# after the getting x and y values we create an id list for them and create it using a normal search
+# it finds x and y values id's and we assume there is no duplicate points
 node_number = len(x_points)
 needed_node = math.ceil(size / 2)
 id_points = []
@@ -831,7 +854,7 @@ for i in range(node_number):
             id_points.append(j)
             break
 
-# TODO: insert your methods for tsp here
+# calling the tsp methods one by one
 print("clustering done")
 tour_christofides = christofides()
 print("christofides done")
@@ -842,15 +865,18 @@ print("two opt done")
 tour_optimized = two_opt(tour_optimized)
 print("two opt done 2")
 print(tour_optimized)
+# get the correct ids for each id we got from the tsp functions
 tour_optimized_ids = []
 for i in range(len(tour_optimized)):
     tour_optimized_ids.append(id_points[tour_optimized[i]])
 print(tour_optimized_ids)
+
 for i in range(len(tour_optimized_ids)):
     plt.plot([X[tour_optimized_ids[i - 1], 0], X[tour_optimized_ids[i],0]], [X[tour_optimized_ids[i - 1],1],
         X[tour_optimized_ids[i],1]], 'r-',color=random.choice(['red', 'green', 'blue', 'yellow', 'black', 'purple', 'pink', 'orange']))
 distance = get_length(tour_optimized)
 
+# open an output file called output.txt and put the distance first then the ids
 with open('output.txt', 'w') as output:
     output.write(str(distance) + '\n')
     for i in range(len(tour_optimized_ids)):
