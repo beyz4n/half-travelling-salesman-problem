@@ -865,6 +865,7 @@ for i in range(node_number):
             id_points.append(j)
             break
 
+# for the duplicate ones we created a mini fix and update these here
 duplicate_ids = []
 duplicate_values = []
 duplicate_found = False
