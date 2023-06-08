@@ -853,6 +853,22 @@ for i in range(node_number):
             id_points.append(j)
             break
 
+duplicate_ids = []
+duplicate_values = []
+duplicate_found = False
+for i in range(len(id_points)):
+    for j in range(len(id_points)):
+        if id_points[i] == id_points[j] and i is not j:
+            duplicate_ids.append(j)
+            duplicate_values.append(id_points[i])
+            id_points[j] = id_points[i] + 1
+            duplicate_found = True
+            break
+    if duplicate_found:
+        break
+
+
+
 # calling the tsp methods one by one
 print("clustering done")
 tour_christofides = christofides()
