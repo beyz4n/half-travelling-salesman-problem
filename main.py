@@ -596,14 +596,17 @@ def two_opt(cities):
                                              cities[node_b2:]))
     return cities
 
+#calculate the distance between two nodes without taking its square root for efficiency
 def calculate_distance(x1, y1, x2, y2):
     return (int(x2) - int(x1)) ** 2 + (int(y2) - int(y1)) ** 2
 
 
 def create_weighted_graph(x_coords, y_coords):
+    #get the number of cities and initialize the graph
     num_cities = len(x_coords)
     graph = np.zeros((num_cities, num_cities))
 
+    # Create a weighted graph from the x and y coordinates of the cities
     for i in range(num_cities):
         for j in range(num_cities):
             if i != j:
@@ -615,22 +618,24 @@ def create_weighted_graph(x_coords, y_coords):
 
 
 def prims_algorithm(graph):
+    
+    # Get the number of vertices in the graph in the first row
     num_vertices = graph.shape[0]
-    # Create an array to keep track of visited vertices
+
+    # Create an array to keep track of visited vertices, store the parent of each vertex in the MST, and the weight of edges
     visited = np.zeros(num_vertices, dtype=bool)
-    # Create an array to store the parent of each vertex in the MST
     parent = np.zeros(num_vertices, dtype=int)
-    # Create an array to store the minimum weight for each vertex
     weight = np.full(num_vertices, float('inf'))
 
-    # Start with the first vertex
+    # Start with the first vertex 
     weight[0] = 0
     parent[0] = -1
 
     for k in range(num_vertices):
-        # Find the vertex with the minimum weight that has not been visited
+        #initialize min weight and vertex as infinity
         min_weight = float('inf')
         min_vertex = -1
+        # Find the vertex with the minimum weight that has not been visited
         for v in range(num_vertices):
             if not visited[v] and weight[v] < min_weight:
                 min_weight = weight[v]
@@ -653,17 +658,24 @@ def prims_algorithm(graph):
 
 
 def find_perfect_matching(odd_vertices, matrix):
+    # Initalize arrays for index and edges
     edges = []
     indexes = []
+
+    # Find the minimum edge for each vertex
     for i in range(len(odd_vertices)):
         if i in indexes:
             continue
+        # Initialize the minimum and index
         min = float('inf')
         min_index = -1
+
+        # Find the minimum edge
         for j in range(len(odd_vertices)):
             if i != j and j not in indexes and matrix[odd_vertices[i]][odd_vertices[j]] < min:
                 min = matrix[odd_vertices[i]][odd_vertices[j]]
                 min_index = j
+        # Add the indexes and edges
         indexes.append(min_index)
         indexes.append(i)
         edges.append((odd_vertices[i], odd_vertices[min_index]))
@@ -692,44 +704,39 @@ def find_odd_degree_nodes(parent_data):
     return odd_degree_nodes
 
 
-def plot_Euler(x_coords, y_coords, parent):
-    plt.figure()
-
-
-    plt.scatter(x_coords, y_coords, color='b')
-
-    plt.show()
-
 def christofides():
+    #create a global adjencey matrix from the cities
     global graph
     graph = create_weighted_graph(x_points, y_points)
+
+    #find the minimum spanning tree
     mst = prims_algorithm(graph)
+    #find the odd degree nodes
     odd_degree_nodes = find_odd_degree_nodes(mst)
 
-    oddCoordsX = []
-    oddCoordsY = []
-    for i in range(len(odd_degree_nodes)):
-        oddCoordsX.append(x_points[odd_degree_nodes[i]])
-        oddCoordsY.append(y_points[odd_degree_nodes[i]])
-
+    #create pairs from the odd verticies and connect them
     matching = find_perfect_matching(odd_degree_nodes, graph)
     multiGraph = []
+
+    #create a multigraph from the mst and the matching
     for i in range(len(mst)):
         multiGraph.append([i, mst[i]])
 
     for i in range(len(matching)):
         multiGraph[matching[i][0]].append(matching[i][1])
 
+    #repsresnt the multigraph in nx
     nxMultiGraph = nx.MultiGraph()
-
     for edge in multiGraph[1:]:
         x = edge[0]
         for i in edge[1:]:
             nxMultiGraph.add_edge(x, i)
 
+    #find the eulerian path
     eulerianPath = list(nx.eulerian_circuit(nxMultiGraph))
 
     tour = [0]
+    #create the tour from the eulerian path by eliminatening the duplicates
     for (i, j) in eulerianPath:
         if j not in tour:
             tour.append(j)
