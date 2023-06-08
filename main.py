@@ -16,13 +16,13 @@ def calculate_density(elm, cent_x, cent_y):
         density += math.sqrt((cent_x - elm[j]) ** 2 + (cent_y - elm[j + 1]) ** 2)
     return density / (elm.size / 2)
 
-
+# this function is used to sort the cluster array according to their centroids x and y values
 def sort_list(elm):
     list = elm
     temp = 0
     j = 0
     index = 0
-
+    # we first sort them according to their y values
     for i in range(int(cluster_size)):
         j = i
         temp = list[i, 1]
@@ -32,7 +32,7 @@ def sort_list(elm):
                 temp = list[j + 1, 1]
                 index = j + 1
             j += 1
-
+        
         temp = list[i, 1]
         list[i, 1] = list[index, 1]
         list[index, 1] = temp
@@ -48,7 +48,8 @@ def sort_list(elm):
         temp = list[i, 4]
         list[i, 4] = list[index, 4]
         list[index, 4] = temp
-
+    # after that we check if it has multiple clusters with the same y value
+    # if it does we sort them according to their x values
     i = 1
     counter = 0
     while i < int(cluster_size):
@@ -89,30 +90,31 @@ def sort_list(elm):
 
 temp_list = []  # use to store temp half lists
 
-
+# this tries all combinations of clusters and returns the best one
 def find_best(elm, new_best_list, temp_list):
     cluster_size = math.ceil(elm.size / 5)
     arr = range(cluster_size)
     best_cluster_size = math.ceil(new_best_list.size / 5)
     
     
-    #def combinations(iterable, r):
+    
     pool = tuple(range(cluster_size))
     n = len(pool)
     r = best_cluster_size
+    # here we calculate all the possible combinations and chose the best one
     if r > n:
         return
     indices = list(range(r))
     begin = list(pool[i] for i in indices)
-    # rate()
+    # setting the current best weight
     best_weight = get_weight(new_best_list)
-    if math.ceil(size / 2) < get_num_of_city(temp_list):
+    if math.ceil(size / 2) <= get_num_of_city(temp_list):
             if get_weight(temp_list) < best_weight:
                 new_best_list = temp_list
                 best_weight = get_weight(temp_list)
     temp_list = []
     temp_list = np.array(elm[begin, :])
-
+    # here we try all the combinations
     while True:
         for i in reversed(range(r)):
             if indices[i] != i + n - r:
@@ -124,9 +126,10 @@ def find_best(elm, new_best_list, temp_list):
         for j in range(i + 1, r):
             indices[j] = indices[j - 1] + 1
         end = list(pool[i] for i in indices)
-        # rate()
-        if math.ceil(size / 2) < get_num_of_city(temp_list):
+        # here we check if the required city size is  matched, if so we consider if it might be better than the list we already have
+        if math.ceil(size / 2) <= get_num_of_city(temp_list):
             if get_weight(temp_list) < best_weight:
+                # setting the new best list 
                 new_best_list = temp_list
                 best_weight = get_weight(temp_list)
         temp_list = []
@@ -152,7 +155,7 @@ def find_best(elm, new_best_list, temp_list):
     gc.collect()
     return new_best_list
 
-
+# this is a simple method to calculate the total number of cities in the given cluster array 
 def get_num_of_city(elm):
     num = 0
     i = 0
@@ -162,16 +165,19 @@ def get_num_of_city(elm):
         i += 1
     return num
 
-
+# here we calculate the weight for the given array of clusters
 def get_weight(list):
     weight = 0
     temp_density = list[0,3]
     temp_density_2 = 0
     i = 1
     list_size = int(list.size/5)
+    # since we sorted the cluster array according to the x and y of their centroids, we roughly should have the nearest clusters in series
+    # we calculate the weight by multipliying the distance between two centroids and multiplying it with the clusters std
+    # so the lower the weight the better the cluster array
     while(i < list_size ):
         temp_density_2 = list[i,3]
-        weight += math.sqrt( (list[i,0]-list[i-1,0])**2 +  (list[i,1]-list[i-1,1])**2 ) * temp_density_2 * temp_density
+        weight += math.sqrt( (list[i,0]-list[i-1,0])**2 +  (list[i,1]-list[i-1,1])**2 ) * temp_density_2 * temp_density 
         temp_density = temp_density_2
         i += 1
 
@@ -270,14 +276,16 @@ def get_weight(list):
 
 #     return flat_xy
 
+# this function is used to terminate the clusters to the desired level which is half of the city size
 def terminate_clusters(best_cluster, X, y):
-
+    # initilizing a variable to hold the cluster size which will be terminated
     best_cluster_size = int(best_cluster.size/5)
-
+    
     i = 0
     center_X = 0
     center_Y = 0
     city_size = get_num_of_city(best_cluster)
+    # here we find the centroid of all cities
     while i < best_cluster_size:
         center_X += best_cluster[i, 0] * best_cluster[i, 4]
         center_Y += best_cluster[i, 1] * best_cluster[i, 4]
@@ -288,7 +296,7 @@ def terminate_clusters(best_cluster, X, y):
     temp = 0
     j = 0
     index = 0
-    # buyukten kucuge siralama city std ye gore
+    # here we sort the clusters according to their standart deviation from biggest to lowest
     for i in range(best_cluster_size):
         j = i
         temp = best_cluster[i, 3]
@@ -300,30 +308,34 @@ def terminate_clusters(best_cluster, X, y):
             j += 1
 
         temp = best_cluster[i, 1]
-        best_cluster[i, 1] = best_cluster[index, 1]
+        best_cluster[i, 1] = best_cluster[index, 1] # we have the y variable of the centroid of the cluster in the index 1
         best_cluster[index, 1] = temp
         temp = best_cluster[i, 0]
-        best_cluster[i, 0] = best_cluster[index, 0]
+        best_cluster[i, 0] = best_cluster[index, 0] # we have the x variable of the centroid of the cluster in the index 0
         best_cluster[index, 0] = temp
         temp = best_cluster[i, 2]
-        best_cluster[i, 2] = best_cluster[index, 2]
+        best_cluster[i, 2] = best_cluster[index, 2] # we have the id of the cluster at index 2
         best_cluster[index, 2] = temp
         temp = best_cluster[i, 3]
-        best_cluster[i, 3] = best_cluster[index, 3]
+        best_cluster[i, 3] = best_cluster[index, 3] # we have the standart deviation at index 3
         best_cluster[index, 3] = temp
         temp = best_cluster[i, 4]
-        best_cluster[i, 4] = best_cluster[index, 4] # 4 de city size var
+        best_cluster[i, 4] = best_cluster[index, 4] # we have the city size at index 4
         best_cluster[index, 4] = temp
 
 
-    min_city_size = math.ceil(size / 2)
+    min_city_size = math.ceil(size / 2) # storing the total city size
+    # here we do the trimming proccess 
     while(min_city_size < city_size):
 
-        if(min_city_size < city_size - best_cluster[0,4] ):
+        if(min_city_size < city_size - best_cluster[0,4] ): # we check if can delete whole clusters
+            # we delete the hole cluster if we can and update the city size and cluster size
             best_cluster = np.delete(best_cluster, 0, 0 )
             city_size = get_num_of_city(best_cluster)
             best_cluster_size = int(best_cluster.size/5)
         else:
+            # if we cannot delete the whole cluster we take the required amount of cities from the remaining cluster with the biggest std
+            # here we get the x and y values for that cluster
             x_axis = np.copy(X[y == best_cluster[0, 2], 0].flatten())
             y_axis = np.copy(X[y == best_cluster[0, 2], 1].flatten())
 
@@ -331,7 +343,7 @@ def terminate_clusters(best_cluster, X, y):
             y_axis = y_axis.flatten()
 
             x_point_length = len(x_axis)
-
+            # here we sort the x and y values according to their distance to the centroid of all cities
             i = 0
             for i in range(int(x_point_length)):
                 j = i
@@ -351,19 +363,19 @@ def terminate_clusters(best_cluster, X, y):
                 temp = y_axis[i]
                 y_axis[i] = y_axis[index]
                 y_axis[index] = temp
-
+            # we calculate how many cities we need from that cluster
             needed_city = min_city_size - (city_size - best_cluster[0,4] )
             i = 0
             temp_X = []
             temp_Y = []
-
+            # we store the needed amount of cities
             while(i<needed_city):
                 temp_X.append(x_axis[i])
                 temp_Y.append(y_axis[i])
                 i += 1
             break
 
-
+    # here we add the remaining cities from the other clusters remaining in the best cluster array
     i = 0
     x_axis = temp_X
     y_axis = temp_Y
@@ -374,7 +386,7 @@ def terminate_clusters(best_cluster, X, y):
 
     flat_XY = np.array(x_axis)
     flat_XY = np.append(flat_XY, y_axis)
-    return flat_XY
+    return flat_XY # we return the x and y values for the clusters
 
 
 
@@ -852,6 +864,23 @@ for i in range(node_number):
         if X[j, 0] == current_x and X[j, 1] == current_y:
             id_points.append(j)
             break
+
+# for the duplicate ones we created a mini fix and update these here
+duplicate_ids = []
+duplicate_values = []
+duplicate_found = False
+for i in range(len(id_points)):
+    for j in range(len(id_points)):
+        if id_points[i] == id_points[j] and i is not j:
+            duplicate_ids.append(j)
+            duplicate_values.append(id_points[i])
+            id_points[j] = id_points[i] + 1
+            duplicate_found = True
+            break
+    if duplicate_found:
+        break
+
+
 
 # calling the tsp methods one by one
 print("clustering done")
