@@ -134,24 +134,7 @@ def find_best(elm, new_best_list, temp_list):
                 best_weight = get_weight(temp_list)
         temp_list = []
         temp_list = np.array(elm[end, :])
-    
-    
-    
-    #combs = list(combinations(arr, best_cluster_size))
-    # i = 0
-    # combs_size = len(combs)
-    # best_weight = get_weight(new_best_list)
-    # while i < combs_size:
-
-    #     if math.ceil(size / 2) < get_num_of_city(temp_list):
-    #         if get_weight(temp_list) < best_weight:
-    #             new_best_list = temp_list
-    #             best_weight = get_weight(temp_list)
-
-    #     temp_list = []
-    #     temp_list = np.array(elm[combs[i], :])
-    #     i += 1
-
+    # backup return
     gc.collect()
     return new_best_list
 
@@ -183,98 +166,6 @@ def get_weight(list):
 
 
     return weight
-
-# def get_weight(elm):
-#     weight = 0
-#     temp_elm = np.copy(elm)
-#     i = 0
-#     elm_size = int(temp_elm.size / 5)
-#     best_distance = math.sqrt((temp_elm[0, 0] - temp_elm[1, 0]) ** 2 + (temp_elm[0, 1] - temp_elm[1, 1]) ** 2)
-#     temp_distance = 0
-#     index = 0
-#     next_index = 0
-#     if elm_size == 1:
-#         weight += temp_elm[0, 3]
-#
-#     while elm_size != 1:
-#
-#         while i < elm_size:
-#             if i != index:
-#                 temp_distance = math.sqrt(
-#                     (temp_elm[index, 0] - temp_elm[i, 0]) ** 2 + (temp_elm[index, 1] - temp_elm[i, 1]) ** 2)
-#                 if temp_distance < best_distance:
-#                     best_distance = temp_distance
-#                     next_index = i
-#             i += 1
-#         i = 0
-#         weight += best_distance * temp_elm[index, 3] * temp_elm[next_index, 3]
-#         temp_elm = np.delete(temp_elm, index, 0)
-#         index = next_index - 1
-#         next_index = 0
-#         best_distance = math.sqrt(
-#             (temp_elm[0, 0] - temp_elm[index, 0]) ** 2 + (temp_elm[0, 1] - temp_elm[index, 1]) ** 2)
-#         elm_size = int(temp_elm.size / 5)
-#
-#     return weight
-
-
-# def terminate_clusters(best_cluster, X, y):
-#     best_cluster_size = int(best_cluster.size / 5)
-#     i = 0
-#     center_X = 0
-#     center_Y = 0
-#     city_size = get_num_of_city(best_cluster)
-#     while i < best_cluster_size:
-#         center_X += best_cluster[i, 0] * best_cluster[i, 4]
-#         center_Y += best_cluster[i, 1] * best_cluster[i, 4]
-#         i += 1
-#     center_X = center_X / city_size
-#     center_Y = center_Y / city_size
-
-#     temp_X = 0
-#     temp_Y = 0
-#     i = 0
-#     x_axis = np.copy(X[y == best_cluster[0, 2], 0].flatten())
-#     y_axis = np.copy(X[y == best_cluster[0, 2], 1].flatten())
-#     for i in range(1, best_cluster_size):
-#         x_axis = np.append(x_axis, X[y == best_cluster[i, 2], 0].flatten())
-#         y_axis = np.append(y_axis, X[y == best_cluster[i, 2], 1].flatten())
-
-#     x_axis = x_axis.flatten()
-#     y_axis = y_axis.flatten()
-
-#     x_point_length = len(x_axis)
-
-#     for i in range(int(x_point_length)):
-#         j = i
-#         temp_X = x_axis[0]
-#         temp_Y = y_axis[0]
-#         index = i
-#         while (j + 1 < x_point_length):
-#             if ((y_axis[j + 1] - center_Y) ** 2 + (x_axis[j + 1] - center_X) ** 2 < (temp_X - center_X) ** 2 +  temp_Y - center_Y) ** 2):
-#                 temp_X = x_axis[j + 1]
-#                 temp_Y = y_axis[j + 1]
-#                 index = j + 1
-#             j += 1
-
-#         temp = x_axis[i]
-#         x_axis[i] = x_axis[index]
-#         x_axis[index] = temp
-#         temp = y_axis[i]
-#         y_axis[i] = y_axis[index]
-#         y_axis[index] = temp
-
-#     min_city_size = math.ceil(size / 2)
-#     temp_X_2 = []
-#     temp_Y_2 = []
-#     i = 0
-#     for i in range(min_city_size):
-#         temp_X_2.append(x_axis[i])
-#         temp_Y_2.append(y_axis[i])
-
-#     flat_xy = temp_X_2 + temp_Y_2
-
-#     return flat_xy
 
 # this function is used to terminate the clusters to the desired level which is half of the city size
 def terminate_clusters(best_cluster, X, y):
@@ -596,14 +487,17 @@ def two_opt(cities):
                                              cities[node_b2:]))
     return cities
 
+#calculate the distance between two nodes without taking its square root for efficiency
 def calculate_distance(x1, y1, x2, y2):
     return (int(x2) - int(x1)) ** 2 + (int(y2) - int(y1)) ** 2
 
 
 def create_weighted_graph(x_coords, y_coords):
+    #get the number of cities and initialize the graph
     num_cities = len(x_coords)
     graph = np.zeros((num_cities, num_cities))
 
+    # Create a weighted graph from the x and y coordinates of the cities
     for i in range(num_cities):
         for j in range(num_cities):
             if i != j:
@@ -615,22 +509,24 @@ def create_weighted_graph(x_coords, y_coords):
 
 
 def prims_algorithm(graph):
+    
+    # Get the number of vertices in the graph in the first row
     num_vertices = graph.shape[0]
-    # Create an array to keep track of visited vertices
+
+    # Create an array to keep track of visited vertices, store the parent of each vertex in the MST, and the weight of edges
     visited = np.zeros(num_vertices, dtype=bool)
-    # Create an array to store the parent of each vertex in the MST
     parent = np.zeros(num_vertices, dtype=int)
-    # Create an array to store the minimum weight for each vertex
     weight = np.full(num_vertices, float('inf'))
 
-    # Start with the first vertex
+    # Start with the first vertex 
     weight[0] = 0
     parent[0] = -1
 
     for k in range(num_vertices):
-        # Find the vertex with the minimum weight that has not been visited
+        #initialize min weight and vertex as infinity
         min_weight = float('inf')
         min_vertex = -1
+        # Find the vertex with the minimum weight that has not been visited
         for v in range(num_vertices):
             if not visited[v] and weight[v] < min_weight:
                 min_weight = weight[v]
@@ -653,17 +549,24 @@ def prims_algorithm(graph):
 
 
 def find_perfect_matching(odd_vertices, matrix):
+    # Initalize arrays for index and edges
     edges = []
     indexes = []
+
+    # Find the minimum edge for each vertex
     for i in range(len(odd_vertices)):
         if i in indexes:
             continue
+        # Initialize the minimum and index
         min = float('inf')
         min_index = -1
+
+        # Find the minimum edge
         for j in range(len(odd_vertices)):
             if i != j and j not in indexes and matrix[odd_vertices[i]][odd_vertices[j]] < min:
                 min = matrix[odd_vertices[i]][odd_vertices[j]]
                 min_index = j
+        # Add the indexes and edges
         indexes.append(min_index)
         indexes.append(i)
         edges.append((odd_vertices[i], odd_vertices[min_index]))
@@ -692,44 +595,39 @@ def find_odd_degree_nodes(parent_data):
     return odd_degree_nodes
 
 
-def plot_Euler(x_coords, y_coords, parent):
-    plt.figure()
-
-
-    plt.scatter(x_coords, y_coords, color='b')
-
-    plt.show()
-
 def christofides():
+    #create a global adjencey matrix from the cities
     global graph
     graph = create_weighted_graph(x_points, y_points)
+
+    #find the minimum spanning tree
     mst = prims_algorithm(graph)
+    #find the odd degree nodes
     odd_degree_nodes = find_odd_degree_nodes(mst)
 
-    oddCoordsX = []
-    oddCoordsY = []
-    for i in range(len(odd_degree_nodes)):
-        oddCoordsX.append(x_points[odd_degree_nodes[i]])
-        oddCoordsY.append(y_points[odd_degree_nodes[i]])
-
+    #create pairs from the odd verticies and connect them
     matching = find_perfect_matching(odd_degree_nodes, graph)
     multiGraph = []
+
+    #create a multigraph from the mst and the matching
     for i in range(len(mst)):
         multiGraph.append([i, mst[i]])
 
     for i in range(len(matching)):
         multiGraph[matching[i][0]].append(matching[i][1])
 
+    #repsresnt the multigraph in nx
     nxMultiGraph = nx.MultiGraph()
-
     for edge in multiGraph[1:]:
         x = edge[0]
         for i in edge[1:]:
             nxMultiGraph.add_edge(x, i)
 
+    #find the eulerian path
     eulerianPath = list(nx.eulerian_circuit(nxMultiGraph))
 
     tour = [0]
+    #create the tour from the eulerian path by eliminatening the duplicates
     for (i, j) in eulerianPath:
         if j not in tour:
             tour.append(j)
@@ -801,23 +699,23 @@ if cluster_size > 1:
     best_list = []
     acceptable_size = False
     cluster_size_2 = math.ceil(clusters_2.size / 10)
-    # comment eklensin
+    # here we check if the chosen cluster satisfys the required city size, if not we try everything with one more cluster place in the list
     while not acceptable_size:
-        for i in range(cluster_size_2):
+        for i in range(cluster_size_2): # setting the best and temp lists temporarly
             best_list = np.append(best_list, np.copy(clusters_2[i]), axis=0)
             temp_list = np.append(temp_list, np.copy(clusters_2[i]), axis=0)
 
         best_list = best_list.reshape(-1, 5)
         temp_list = temp_list.reshape(-1, 5)
         best_list = find_best(clusters_2, best_list, temp_list)
-        if math.ceil(size / 2) < get_num_of_city(best_list):
+        if math.ceil(size / 2) < get_num_of_city(best_list): # checking if it satisfies the city size
             acceptable_size = True
-        else:
+        else: # if not repating with one more cluster space
             cluster_size_2 += 1
             best_list = []
             temp_list = []
             gc.collect()
-
+    # terminating the clusters and cities until we reach exactly the wanted city size
     flat_xy_points = terminate_clusters(best_list, X, y)
     x_points = flat_xy_points[: math.ceil(size / 2)]
     y_points = flat_xy_points[math.ceil(size / 2):]
